@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
 import { FontAwesome } from "@expo/vector-icons"
 
@@ -10,6 +10,7 @@ export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back)
   const [hasPermission, setHasPermission] = useState(null)
   const [capturedPhoto, setCapturedPhoto] = useState(null)
+  const [open, setOpen] = useState(false)
 
   useEffect (() => {
     (async () => { 
@@ -26,10 +27,11 @@ export default function App() {
     return <Text>Acesso negado</Text>
   }
 
-  async function takePicture(){
+  const takePicture = async () => {
     if(camRef){
-    const data = await camRef.current.takePictureAsync();
+    const data = await camRef.current.takePictureAsyn();
     setCapturedPhoto(data.uri)
+    setOpen(true)
     }
   }
 
@@ -40,6 +42,7 @@ export default function App() {
       <Camera
       style= {styles.camera}
       type={type}
+      ref={camRef}
       >
       <View style={styles.contentButtons} >
         <TouchableOpacity
@@ -55,13 +58,30 @@ export default function App() {
           <FontAwesome name="exchange" size={23} color="red"></FontAwesome>
         </TouchableOpacity>
         <TouchableOpacity
-        style={style.buttonCamera}
+        style={styles.buttonCamera}
         onPress={takePicture}
         >
           <FontAwesome name="camera" size={23} color="#fff"></FontAwesome>
         </TouchableOpacity>
       </View>
       </Camera>
+      {capturedPhoto &&(
+      <Modal
+      animationType="slide"
+      transparent={true}
+      visible={open}
+      > <View style={styles.contentModal}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => {setOpen(false)}}
+        >
+          <FontAwesome name="close" size={50} color="#fff"></FontAwesome>
+        </TouchableOpacity>
+       
+          <Image style={styles.imgPhoto} source={{uri: capturedPhoto}}/>
+        </View>
+      </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -104,4 +124,21 @@ const styles = StyleSheet.create({
     width: 50,
     borderRadius: 50,
   },
+  contentModal:{
+    flex:1,
+    justifyContent:"center",
+    alignItems:"flex-end",
+    margin:20,
+  },
+  closeButton:{
+    position:"absolute",
+    top:10,
+    left:2,
+    margin:10,
+  },
+  imgPhoto:{
+    width:"100%",
+    height:400,
+  }
+
 });
